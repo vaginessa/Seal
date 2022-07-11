@@ -17,12 +17,11 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
-import com.junkfood.seal.BaseApplication
 import com.junkfood.seal.R
 import com.junkfood.seal.ui.component.PreferenceItem
 import com.junkfood.seal.ui.component.PreferenceSwitch
 import com.junkfood.seal.ui.component.Subtitle
-import com.junkfood.seal.util.DownloadUtil
+import com.junkfood.seal.ui.page.download.DownloadViewModel
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.PreferenceUtil.CUSTOM_COMMAND
 import com.junkfood.seal.util.PreferenceUtil.DEBUG
@@ -34,15 +33,12 @@ import com.junkfood.seal.util.PreferenceUtil.getAudioFormatDesc
 import com.junkfood.seal.util.PreferenceUtil.getVideoFormatDesc
 import com.junkfood.seal.util.PreferenceUtil.getVideoQualityDesc
 import com.junkfood.seal.util.TextUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class
 )
 @Composable
-fun DownloadPreferences(onBackPressed: () -> Unit, navigateToDownloadDirectory: () -> Unit) {
+fun DownloadPreferences(downloadViewModel: DownloadViewModel, onBackPressed: () -> Unit, navigateToDownloadDirectory: () -> Unit) {
     val context = LocalContext.current
 
     var showTemplateEditDialog by remember { mutableStateOf(false) }
@@ -58,6 +54,8 @@ fun DownloadPreferences(onBackPressed: () -> Unit, navigateToDownloadDirectory: 
     var downloadNotification by remember {
         mutableStateOf(PreferenceUtil.getValue(NOTIFICATION))
     }
+
+    val ytdlpVersion = downloadViewModel.ytdlpVersion.collectAsState()
 
     val notificationPermission =
         if (Build.VERSION.SDK_INT >= 33)
@@ -127,17 +125,12 @@ fun DownloadPreferences(onBackPressed: () -> Unit, navigateToDownloadDirectory: 
                     ) { navigateToDownloadDirectory() }
                 }
                 item {
-                    var ytdlpVersion by remember {
-                        mutableStateOf(BaseApplication.ytdlpVersion)
-                    }
                     PreferenceItem(
                         title = stringResource(id = R.string.ytdlp_version),
-                        description = ytdlpVersion,
+                        description = ytdlpVersion.value,
                         icon = Icons.Outlined.Update
                     ) {
-                        CoroutineScope(Job()).launch {
-                            ytdlpVersion = DownloadUtil.updateYtDlp()
-                        }
+                        downloadViewModel.updateytDlp(true)
                     }
                 }
                 item {
