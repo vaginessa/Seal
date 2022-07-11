@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Icon
 import android.os.*
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.junkfood.seal.MainActivity
@@ -24,18 +24,21 @@ import java.util.regex.Pattern
 
 
 class VideoDownloadService : Service() {
-    private lateinit var notificationBuilder: Notification.Builder
+    private lateinit var notificationBuilder: NotificationCompat.Builder
+
     class MutableLiveState : MutableLiveData<ServiceState>(ServiceState()) {
         var oldTask: DownloadTask? = null
         override fun setValue(v: ServiceState?) {
             oldTask = value!!.task
             super.setValue(v)
         }
+
         override fun postValue(v: ServiceState?) {
             oldTask = value!!.task
             super.postValue(v)
         }
     }
+
     private var allowServiceStop: Boolean? = null
     private val downloadClient = MutableLiveData<Messenger>(null)
     private val mTaskList = ConcurrentLinkedQueue<DownloadTask>()
@@ -55,14 +58,13 @@ class VideoDownloadService : Service() {
         Observer<Messenger> { cli ->
             if (cli == null) {
                 currentState.removeObserver(currentTaskObserver)
-            }
-            else {
+            } else {
                 currentState.observeForever(currentTaskObserver)
             }
         }
 
     private val taskChangeObserver =
-        Observer<ServiceState> { s->
+        Observer<ServiceState> { s ->
             if (s.task != currentState.oldTask) {
                 updateNotification(s.task != null)
                 if (s.task != null)
@@ -79,9 +81,11 @@ class VideoDownloadService : Service() {
             e.printStackTrace()
             val b = Bundle()
             b.putParcelable(WHAT_TASK_PROGRESS.name, currentState.value)
-            sendError(WHAT_TASK_PROGRESS.ordinal,
+            sendError(
+                WHAT_TASK_PROGRESS.ordinal,
                 if (isFetchingInfo) R.string.download_error_msg else R.string.fetch_info_error_msg,
-                message=e.message)
+                message = e.message
+            )
             notificationId?.let {
                 NotificationUtil.finishNotification(
                     notificationId, text = context.getString(R.string.download_error_msg),
@@ -104,17 +108,20 @@ class VideoDownloadService : Service() {
                         arg1 = playlistSize,
                         to = to
                     )
-                }
-                else if (playlistSize == 1){
+                } else if (playlistSize == 1) {
                     mTaskList.add(task)
                     b.putParcelable(WHAT_APPEND_TASK.name, task)
                     sendMessage(WHAT_APPEND_TASK.ordinal, b, to)
                     taskProcess()
-                }
-                else
+                } else
                     throw Exception("Empty Playlist")
             } catch (e: Exception) {
-                sendError(WHAT_APPEND_TASK_ASK.ordinal, R.string.fetch_info_error_msg, to = to, message = e.message)
+                sendError(
+                    WHAT_APPEND_TASK_ASK.ordinal,
+                    R.string.fetch_info_error_msg,
+                    to = to,
+                    message = e.message
+                )
             }
         }
     }
@@ -130,30 +137,38 @@ class VideoDownloadService : Service() {
                 return
             }
             Log.d(TAG, "downloadVideo: $index" + videoInfo.title)
-            postValue(value!!.copy(
-                state = value!!.state.copy(
-                    progress = 0f,
-                    showVideoCard = true,
-                    fileNames = null,
-                    videoTitle = videoInfo.title,
-                    videoAuthor = videoInfo.uploader ?: "null",
-                    videoThumbnailUrl = TextUtil.urlHttpToHttps(videoInfo.thumbnail ?: "")
+            postValue(
+                value!!.copy(
+                    state = value!!.state.copy(
+                        progress = 0f,
+                        showVideoCard = true,
+                        fileNames = null,
+                        videoTitle = videoInfo.title,
+                        videoAuthor = videoInfo.uploader ?: "null",
+                        videoThumbnailUrl = TextUtil.urlHttpToHttps(videoInfo.thumbnail ?: "")
+                    )
                 )
-            ))
+            )
             val notificationId = (url + index).hashCode()
             var intent: Intent? = null
-            var downloadResultTemp: DownloadUtilService.Result = DownloadUtilService.Result.failure()
+            var downloadResultTemp: DownloadUtilService.Result =
+                DownloadUtilService.Result.failure()
             try {
                 mNotificationId = notificationId
                 NotificationUtil.makeNotification(notificationId, videoInfo.title)
                 downloadResultTemp =
-                    DownloadUtilService.downloadVideo(videoInfo, value!!.task!!) { progress, _, line ->
-                        postValue(value!!.copy(
-                            state = value!!.state.copy(
-                                progress = progress,
-                                progressText = line
+                    DownloadUtilService.downloadVideo(
+                        videoInfo,
+                        value!!.task!!
+                    ) { progress, _, line ->
+                        postValue(
+                            value!!.copy(
+                                state = value!!.state.copy(
+                                    progress = progress,
+                                    progressText = line
+                                )
                             )
-                        ))
+                        )
                         if (mNotificationId != null)
                             NotificationUtil.updateNotification(
                                 notificationId,
@@ -178,11 +193,13 @@ class VideoDownloadService : Service() {
                 ) else null
             )
             if (intent != null) {
-                postValue(value!!.copy(
-                    state = value!!.state.copy(
-                        fileNames = downloadResultTemp.filePath
+                postValue(
+                    value!!.copy(
+                        state = value!!.state.copy(
+                            fileNames = downloadResultTemp.filePath
+                        )
                     )
-                ))
+                )
             }
         }
     }
@@ -203,24 +220,30 @@ class VideoDownloadService : Service() {
                     request.addOption(m.group(2))
                 }
             }
-            postValue(value!!.copy(
-                state = value!!.state.copy(
-                    progress = 0f,
-                    showVideoCard = false,
-                    fileNames = null,
+            postValue(
+                value!!.copy(
+                    state = value!!.state.copy(
+                        progress = 0f,
+                        showVideoCard = false,
+                        fileNames = null,
+                    )
                 )
-            ))
+            )
             serviceScope.launch(Dispatchers.IO) {
                 try {
                     if (url.isNotEmpty())
                         with(DownloadUtilService.fetchVideoInfo(url)) {
                             if (!title.isNullOrEmpty() and !thumbnail.isNullOrEmpty())
-                                postValue(value!!.copy( state = value!!.state.copy(
-                                     videoTitle = title,
-                                     videoThumbnailUrl = TextUtil.urlHttpToHttps(thumbnail),
-                                     videoAuthor = uploader ?: "null",
-                                     showVideoCard = true
-                                 )))
+                                postValue(
+                                    value!!.copy(
+                                        state = value!!.state.copy(
+                                            videoTitle = title,
+                                            videoThumbnailUrl = TextUtil.urlHttpToHttps(thumbnail),
+                                            videoAuthor = uploader ?: "null",
+                                            showVideoCard = true
+                                        )
+                                    )
+                                )
                         }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -236,10 +259,14 @@ class VideoDownloadService : Service() {
             serviceScope.launch(Dispatchers.IO) {
                 try {
                     YoutubeDL.getInstance().execute(request) { progress, _, line ->
-                        postValue(value!!.copy( state = value!!.state.copy(
-                            progress = progress,
-                            progressText = line)
-                        ))
+                        postValue(
+                            value!!.copy(
+                                state = value!!.state.copy(
+                                    progress = progress,
+                                    progressText = line
+                                )
+                            )
+                        )
                         if (mNotificationId != null)
                             NotificationUtil.updateNotification(
                                 notificationId,
@@ -327,7 +354,12 @@ class VideoDownloadService : Service() {
             }
             val b = Bundle()
             b.putString(WHAT_YTDLP_VERSION.name, ytdlpVersion)
-            sendMessage(WHAT_YTDLP_VERSION.ordinal, b, to, arg1 = if (rv == YoutubeDL.UpdateStatus.DONE) R.string.ytdlp_version else R.string.yt_dlp_up_to_date)
+            sendMessage(
+                WHAT_YTDLP_VERSION.ordinal,
+                b,
+                to,
+                arg1 = if (rv == YoutubeDL.UpdateStatus.DONE) R.string.ytdlp_version else R.string.yt_dlp_up_to_date
+            )
         }
     }
 
@@ -341,8 +373,7 @@ class VideoDownloadService : Service() {
                     val ver = b.getString(WHAT_YTDLP_VERSION.name)
                     if (ver!!.isEmpty()) {
                         updateYtDlp(msg.replyTo)
-                    }
-                    else {
+                    } else {
                         b.putString(WHAT_YTDLP_VERSION.name, ytdlpVersion)
                         sendMessage(msg.what, b, msg.replyTo)
                     }
@@ -351,23 +382,28 @@ class VideoDownloadService : Service() {
                     val b = msg.peekData()
                     try {
                         b.classLoader = DownloadTask::class.java.classLoader
-                        val task = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) b.getParcelable(WHAT_APPEND_TASK.name) else b.getParcelable(WHAT_APPEND_TASK.name, DownloadTask::class.java)
+                        val task =
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) b.getParcelable(
+                                WHAT_APPEND_TASK.name
+                            ) else b.getParcelable(WHAT_APPEND_TASK.name, DownloadTask::class.java)
                         if (task?.url!!.isNotEmpty()) {
                             if (!task.settings.isCustom() && task.settings.downloadPlaylist && task.endItem == 0) {
                                 parsePlaylistInfo(task, msg.replyTo)
-                            }
-                            else {
+                            } else {
                                 mTaskList.add(task)
                                 sendMessage(msg.what, b, msg.replyTo)
                                 taskProcess()
                             }
-                        }
-                        else
-                            sendError(msg.what, R.string.url_empty, to =  msg.replyTo)
-                    }
-                    catch (e: Exception) {
+                        } else
+                            sendError(msg.what, R.string.url_empty, to = msg.replyTo)
+                    } catch (e: Exception) {
                         e.printStackTrace()
-                        sendError(msg.what, R.string.invalid_task_error, message=e.message, to =  msg.replyTo)
+                        sendError(
+                            msg.what,
+                            R.string.invalid_task_error,
+                            message = e.message,
+                            to = msg.replyTo
+                        )
                     }
                 }
                 WHAT_TASK_PROGRESS.ordinal -> {
@@ -378,7 +414,10 @@ class VideoDownloadService : Service() {
                     val b = msg.peekData()
                     try {
                         b.classLoader = DownloadTask::class.java.classLoader
-                        val task = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) b.getParcelable(WHAT_TASK_HALT.name) else b.getParcelable(WHAT_TASK_HALT.name, DownloadTask::class.java)
+                        val task =
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) b.getParcelable(
+                                WHAT_TASK_HALT.name
+                            ) else b.getParcelable(WHAT_TASK_HALT.name, DownloadTask::class.java)
                         val st = currentState.value!!.state
                         val ct = currentState.value!!.task!!
                         if (task!!.url == ct.url && st.downloadItemCount > st.currentIndex) {
@@ -390,15 +429,18 @@ class VideoDownloadService : Service() {
                                 )
                             )
                             b.putBoolean(WHAT_TASK_HALT.name + "0", true)
-                        }
-                        else {
+                        } else {
                             b.putBoolean(WHAT_TASK_HALT.name + "0", false)
                         }
                         sendMessage(msg.what, b, msg.replyTo)
-                    }
-                    catch (e: Exception) {
+                    } catch (e: Exception) {
                         e.printStackTrace()
-                        sendError(msg.what, R.string.invalid_task_error, message=e.message, to =  msg.replyTo)
+                        sendError(
+                            msg.what,
+                            R.string.invalid_task_error,
+                            message = e.message,
+                            to = msg.replyTo
+                        )
                     }
                 }
                 else -> {}
@@ -413,13 +455,14 @@ class VideoDownloadService : Service() {
                 val task = mTaskList.poll()
 
                 postValue(
-                   value!!.copy(
+                    value!!.copy(
                         task = task,
                         state = value!!.state.copy(
                             progress = 100f,
                             progressText = "",
                             downloadItemCount = 0,
-                            currentIndex = 0
+                            currentIndex = 0,
+                            fileNames = value!!.state.fileNames
                         )
                     )
                 )
@@ -472,7 +515,13 @@ class VideoDownloadService : Service() {
         sendMessage(what, arg1 = -WHAT_ERROR.ordinal, data = b, arg2 = errorCode, to = to)
     }
 
-    fun sendMessage(what: Int, data: Bundle? = null, to: Messenger? = null, arg1: Int = Constants.NO_ERROR, arg2: Int = Constants.NO_ERROR) {
+    fun sendMessage(
+        what: Int,
+        data: Bundle? = null,
+        to: Messenger? = null,
+        arg1: Int = Constants.NO_ERROR,
+        arg2: Int = Constants.NO_ERROR
+    ) {
         if (null == downloadClient.value && to == null) {
             Log.d(TAG, "client is null")
             return
@@ -512,7 +561,7 @@ class VideoDownloadService : Service() {
         val notif = getNotification(allowStop)
         Log.d(TAG, "Updating notification as = " + allowStop + " newnotif? " + (notif != null))
         if (notif != null) {
-            val manager = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)!!
+            val manager = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
             manager.notify(Constants.NOTIFICATION_ID, notif)
         }
     }
@@ -526,11 +575,17 @@ class VideoDownloadService : Service() {
         val intentMain = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntentMain = PendingIntent.getActivity(this, 0, intentMain, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntentMain =
+            PendingIntent.getActivity(this, 0, intentMain, PendingIntent.FLAG_IMMUTABLE)
         val intentStop = Intent(this, VideoDownloadService::class.java)
         intentStop.action = Constants.ACTION_STOP
         val pendingIntentStop =
-            PendingIntent.getService(this, 0, intentStop, PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(
+                this,
+                0,
+                intentStop,
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val chan = NotificationChannel(
@@ -538,31 +593,32 @@ class VideoDownloadService : Service() {
                 "VideoDownloadService Bys Seal",
                 NotificationManager.IMPORTANCE_LOW
             )
-            val manager = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)!!
-            manager!!.createNotificationChannel(chan)
-            notificationBuilder = Notification.Builder(this, Constants.CHANNEL_ID)
-                .setContentTitle(getText(R.string.seal_service))
-                .setContentText(context.getString(R.string.seal_service_running))
-                .setSmallIcon(R.drawable.seal)
-                .setContentIntent(pendingIntentMain)
-                .setAutoCancel(true)
-                .setOnlyAlertOnce(true)
-                .setOngoing(true)
-                .setCategory(Notification.CATEGORY_PROGRESS)
-                .setAutoCancel(true)
-                .setStyle(Notification.DecoratedMediaCustomViewStyle())
-                if (allowStop)
-                //.setCustomContentView(RemoteViews(this.packageName, R.layout.layout_notification))
-                    notificationBuilder.setActions(
-                        Notification.Action.Builder(
-                            Icon.createWithResource(this, R.drawable.ic_baseline_close_24),
-                            getText(R.string.btn_stop),
-                            pendingIntentStop
-                        ).build()
-                    )
-                else
-                    notificationBuilder.setActions()
+            val manager = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+            manager.createNotificationChannel(chan)
         }
+        notificationBuilder = NotificationCompat.Builder(this, Constants.CHANNEL_ID)
+            .setContentTitle(getText(R.string.seal_service))
+            .setContentText(context.getString(R.string.seal_service_running))
+            .setSmallIcon(R.drawable.seal)
+            .setContentIntent(pendingIntentMain)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .setOngoing(true)
+            .setCategory(Notification.CATEGORY_PROGRESS)
+            .setAutoCancel(true)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+        if (allowStop)
+        //.setCustomContentView(RemoteViews(this.packageName, R.layout.layout_notification))
+            notificationBuilder.addAction(
+                NotificationCompat.Action.Builder(
+                    R.drawable.ic_baseline_close_24,
+                    getText(R.string.btn_stop),
+                    pendingIntentStop
+                ).build()
+            )
+        else
+            notificationBuilder.clearActions()
+
         return notificationBuilder.build()
     }
 
@@ -583,7 +639,9 @@ class VideoDownloadService : Service() {
         sendMessage(WHAT_EXIT_REQUEST.ordinal)
 
         // Stop foreground service and remove the notification.
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        }
 
         // Stop the foreground service.
         stopSelf()
@@ -593,6 +651,7 @@ class VideoDownloadService : Service() {
         private const val TAG = "VideoDownloadService"
         var ytdlpVersion = ""
         lateinit var serviceScope: CoroutineScope
+
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
     }

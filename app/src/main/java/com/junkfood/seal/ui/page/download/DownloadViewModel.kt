@@ -7,13 +7,12 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.junkfood.seal.BaseApplication
 import com.junkfood.seal.BaseApplication.Companion.context
 import com.junkfood.seal.MainActivity
 import com.junkfood.seal.R
 import com.junkfood.seal.service.Constants.What.*
 import com.junkfood.seal.util.*
-import com.junkfood.seal.util.FileUtil.openFile
+import com.junkfood.seal.util.FileUtil.openFileInURI
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -281,8 +280,7 @@ class DownloadViewModel @Inject constructor() : ViewModel() {
 
 
     fun openVideoFile() {
-        if (stateFlow.value.state.fileNames != null)
-            openFile(DownloadUtilService.Result.success(stateFlow.value.state.fileNames))
+        stateFlow.value.state.fileNames?.firstOrNull()?.let { openFileInURI(it) }
     }
 
     private fun showPlaylistDialog(playlistSize: Int) {
