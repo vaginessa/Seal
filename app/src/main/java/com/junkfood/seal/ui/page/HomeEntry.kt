@@ -30,8 +30,8 @@ import com.junkfood.seal.R
 import com.junkfood.seal.ui.common.LocalWindowWidthState
 import com.junkfood.seal.ui.common.Route
 import com.junkfood.seal.ui.common.animatedComposable
-import com.junkfood.seal.ui.page.download.DownloadPage
-import com.junkfood.seal.ui.page.download.DownloadViewModel
+import com.junkfood.seal.ui.page.home.DownloadPage
+import com.junkfood.seal.ui.page.home.DownloadViewModel
 import com.junkfood.seal.ui.page.settings.SettingsPage
 import com.junkfood.seal.ui.page.settings.about.AboutPage
 import com.junkfood.seal.ui.page.settings.about.CreditsPage

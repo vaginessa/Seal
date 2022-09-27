@@ -22,7 +22,7 @@ import com.junkfood.seal.ui.common.LocalDarkTheme
 import com.junkfood.seal.ui.common.LocalSeedColor
 import com.junkfood.seal.ui.common.SettingsProvider
 import com.junkfood.seal.ui.page.HomeEntry
-import com.junkfood.seal.ui.page.download.DownloadViewModel
+import com.junkfood.seal.ui.page.home.DownloadViewModel
 import com.junkfood.seal.ui.theme.SealTheme
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.TextUtil

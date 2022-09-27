@@ -1,4 +1,4 @@
-package com.junkfood.seal.ui.page.download
+package com.junkfood.seal.ui.page.home
 
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE

@@ -12,5 +12,6 @@ class Route {
         const val CREDITS = "credits"
         const val LANGUAGES = "languages"
         const val TEMPLATE = "template"
+        const val DOWNLOAD_QUEUE = "download_queue"
     }
 }

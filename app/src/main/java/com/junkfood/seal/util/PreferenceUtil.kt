@@ -35,7 +35,6 @@ object PreferenceUtil {
         return DatabaseUtil.getTemplateList()[kv.decodeInt(TEMPLATE_INDEX, 0)].template
     }
 
-    //        kv.decodeString(TEMPLATE, context.getString(R.string.template_example)).toString()
     fun getOutputPathTemplate(): String =
         kv.decodeString(OUTPUT_PATH_TEMPLATE, "%(uploader)s/%(playlist_title)s/").toString()
 

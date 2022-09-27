@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.junkfood.seal.ui.page.download
+package com.junkfood.seal.ui.page.home
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column

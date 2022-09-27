@@ -1,4 +1,4 @@
-package com.junkfood.seal.ui.page.download
+package com.junkfood.seal.ui.page.home
 
 import android.Manifest
 import android.os.Build
