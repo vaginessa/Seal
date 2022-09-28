@@ -220,4 +220,5 @@
     <string name="clear_temp_files_info">Temporary files can be used to resume cancelled downloads. Are you sure to delete all of these files?</string>
     <string name="la_vi" translatable="false">Tiếng Việt</string>
     <string name="multiselect_mode">Multiselect mode</string>
+    <string name="download_queue">Download queue</string>
 </resources>

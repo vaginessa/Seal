@@ -32,6 +32,7 @@ import com.junkfood.seal.ui.common.Route
 import com.junkfood.seal.ui.common.animatedComposable
 import com.junkfood.seal.ui.page.home.DownloadPage
 import com.junkfood.seal.ui.page.home.DownloadViewModel
+import com.junkfood.seal.ui.page.queue.DownloadQueuePage
 import com.junkfood.seal.ui.page.settings.SettingsPage
 import com.junkfood.seal.ui.page.settings.about.AboutPage
 import com.junkfood.seal.ui.page.settings.about.CreditsPage
@@ -132,6 +133,11 @@ fun HomeEntry(
                 DownloadDirectoryPreferences { onBackPressed() }
             }
             animatedComposable(Route.TEMPLATE) { TemplateListPage { onBackPressed() } }
+            animatedComposable(Route.DOWNLOAD_QUEUE) {
+                DownloadQueuePage {
+                    onBackPressed()
+                }
+            }
         }
 
         WelcomeDialog {

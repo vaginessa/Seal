@@ -82,6 +82,7 @@ class DownloadViewModel @Inject constructor() : ViewModel() {
         val progress: Float = 0f,
         val thumbnail: String = "",
         val progressText: String = "",
+        val downloadPreferences: DownloadUtil.DownloadPreferences = DownloadUtil.DownloadPreferences()
     )
 
     fun updateUrl(url: String) = mutableStateFlow.update { it.copy(url = url) }

@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Subscriptions
+import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -146,6 +147,16 @@ fun DownloadPage(
                             }
                         },
                         actions = {
+                            IconButton(onClick = { navController.navigate(Route.DOWNLOAD_QUEUE) }) {
+                                Box {
+                                    Icon(
+                                        modifier = Modifier.align(Alignment.Center),
+                                        imageVector = Icons.Rounded.Downloading,
+                                        contentDescription = stringResource(id = R.string.download_queue)
+                                    )
+                                }
+
+                            }
                             IconButton(onClick = { navController.navigate(Route.DOWNLOADS) }) {
                                 Icon(
                                     imageVector = Icons.Outlined.Subscriptions,

@@ -60,6 +60,7 @@ import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.PreferenceUtil.DarkThemePreference.Companion.FOLLOW_SYSTEM
 import com.junkfood.seal.util.PreferenceUtil.DarkThemePreference.Companion.OFF
 import com.junkfood.seal.util.PreferenceUtil.DarkThemePreference.Companion.ON
+import material.io.color.hct.Hct
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,14 +114,10 @@ fun AppearancePreferences(
                         ColorButton(color = Color(ColorScheme.DEFAULT_SEED_COLOR))
                         ColorButton(color = Color.Yellow)
                         ColorButton(
-                            color = Color(
-                                material.io.color.hct.Hct.from(60.0, 150.0, 70.0).toInt()
-                            )
+                            color = Color(Hct.from(60.0, 150.0, 70.0).toInt())
                         )
                         ColorButton(
-                            color = Color(
-                                material.io.color.hct.Hct.from(125.0, 50.0, 60.0).toInt()
-                            )
+                            color = Color(Hct.from(125.0, 50.0, 60.0).toInt())
                         )
                         ColorButton(color = Color.Red)
                         ColorButton(color = Color.Magenta)
